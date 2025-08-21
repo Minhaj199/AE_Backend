@@ -1,22 +1,24 @@
+const model = require("../db")
+const {createToken} = require("../jwt")
 const validateBook = require("../validator")
 
 const books=[]
 module.exports={
-    createBook:(req,res,next)=>{
+    createBook:async(req,res,next)=>{
         try {
         const bookData=validateBook(req.body)
-        console.log(bookData)
-        books.push(bookData)
-        res.json({success:true,bookData})
+        const result=await model.create(bookData)
+        const token=createToken({id:result._id})
+        res.json({success:true,bookData:result,token})
         } catch (error) {
           next(error)
         }
     },
-    getBooks: (req, res, next) => {
+    getBooks:async (req, res, next) => {
         try {
             let { genre, author, minYear, available, limit, offset } = req.query;
 
-            let result = [...books]
+            let result = await model.find()
             if (genre) {
                 result = result.filter(b => b.genre?.toLowerCase() === genre.toLowerCase())
             }
@@ -45,10 +47,10 @@ module.exports={
             next(error)
         }
     },
-    checkoutBook: (req, res, next) => {
+    checkoutBook:async (req, res, next) => {
         try {
             const { id } = req.params
-            const book = books.find(b => b.id == id)
+            const book =await model.findOne({_id:id})
 
             if (!book) {
                 return res.status(404).json({ success: false, message: "Book not found" })
@@ -59,7 +61,7 @@ module.exports={
             }
 
             book.stock -= 1
-
+            await model.findByIdAndUpdate(id,{$set:book})
             res.json({ success: true, data: book })
         } catch (error) {
             next(error)

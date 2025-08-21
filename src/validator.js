@@ -1,9 +1,5 @@
 const ValidationError=require( "./customError");
-const crypto = require("crypto");
 
-function generateId() {
-  return crypto.randomUUID()
-}
 function validateBook(book) {
   const errors = {};
 
@@ -40,6 +36,6 @@ function validateBook(book) {
     if (Object.keys(errors).length > 0) {
     throw new ValidationError(errors);
   }
-  return {id:generateId(),title:book.title,author:book.author,publishedYear:book.publishedYear??'',genre:book.genre??'',stock:book.stock}
+  return {title:book.title,author:book.author,publishedYear:book.publishedYear??'',genre:book.genre??'',stock:book.stock}
 }
 module.exports= validateBook
